@@ -4,13 +4,13 @@ import { motion } from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../../common/SafeIcon';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useFactory } from '../../contexts/FactoryContext';
+import { useAuth } from '../../contexts/FactoryContext';
 
 const { FiHome, FiShoppingCart, FiDollarSign, FiCheckSquare, FiPackage, FiUsers, FiSettings, FiTool, FiBook, FiLayers } = FiIcons;
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { t } = useLanguage();
-  const { factoryConfig } = useFactory();
+  const { factory } = useAuth();
 
   const menuItems = [
     { icon: FiHome, label: 'Главная', path: '/' },
@@ -45,9 +45,11 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               <SafeIcon icon={FiTool} className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-gray-800">{factoryConfig.name}</h1>
+              <h1 className="text-lg font-bold text-gray-800">
+                {factory?.name || 'KEMSEL SYSTEMS'}
+              </h1>
               <p className="text-xs text-gray-600">
-                {factoryConfig.type === 'individual' ? 'Индивидуальный поток' : 'Поточный поток'}
+                Цифровая фабрика
               </p>
             </div>
           </div>
@@ -71,15 +73,12 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           ))}
         </nav>
 
-        {/* Factory Type Badge */}
+        {/* Factory Info Badge */}
         <div className="absolute bottom-4 left-4 right-4">
-          <div className={`p-3 rounded-lg text-center text-sm ${
-            factoryConfig.type === 'individual' 
-              ? 'bg-green-50 text-green-700 border border-green-200'
-              : 'bg-purple-50 text-purple-700 border border-purple-200'
-          }`}>
-            <p className="font-medium">MVP v1.0</p>
-            <p className="text-xs">KEMSEL SYSTEMS</p>
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 p-3 rounded-lg text-center text-sm">
+            <p className="font-medium text-blue-900">SaaS MVP v2.0</p>
+            <p className="text-xs text-blue-700">KEMSEL SYSTEMS</p>
+            <p className="text-xs text-blue-600 mt-1">Мульти-арендность</p>
           </div>
         </div>
       </motion.div>

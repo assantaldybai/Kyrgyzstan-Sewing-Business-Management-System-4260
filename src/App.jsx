@@ -1,12 +1,15 @@
 import React from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { FactoryProvider, useFactory } from './contexts/FactoryContext';
 import { TaskProvider } from './contexts/TaskContext';
 import { TechMapProvider } from './contexts/TechMapContext';
 import Sidebar from './components/Layout/Sidebar';
 import Header from './components/Layout/Header';
-import FactorySetup from './components/Setup/FactorySetup';
+import FactorySetupForm from './components/Auth/FactorySetupForm';
+import AuthPage from './pages/AuthPage';
+import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import Dashboard from './pages/Dashboard';
 import Orders from './pages/Orders';
 import Finances from './pages/Finances';
@@ -21,18 +24,38 @@ import { DataProvider } from './contexts/DataContext';
 import './App.css';
 
 const AppContent = () => {
-  const { factoryConfig } = useFactory();
+  const { user, profile, factory, loading, isSuperAdmin, needsFactorySetup } = useAuth();
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
 
-  // Show setup if factory is not configured
-  if (!factoryConfig.isConfigured) {
-    return <FactorySetup />;
+  // Show loading spinner
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
 
+  // Show auth page if not logged in
+  if (!user) {
+    return <AuthPage />;
+  }
+
+  // Show superadmin dashboard for superadmins
+  if (isSuperAdmin()) {
+    return <SuperAdminDashboard />;
+  }
+
+  // Show factory setup if user needs to create a factory
+  if (needsFactorySetup()) {
+    return <FactorySetupForm />;
+  }
+
+  // Show main app for factory users
   return (
     <Router>
       <div className="flex h-screen bg-gray-100">
@@ -65,17 +88,19 @@ const AppContent = () => {
 
 function App() {
   return (
-    <LanguageProvider>
-      <DataProvider>
-        <FactoryProvider>
-          <TaskProvider>
-            <TechMapProvider>
-              <AppContent />
-            </TechMapProvider>
-          </TaskProvider>
-        </FactoryProvider>
-      </DataProvider>
-    </LanguageProvider>
+    <AuthProvider>
+      <LanguageProvider>
+        <DataProvider>
+          <FactoryProvider>
+            <TaskProvider>
+              <TechMapProvider>
+                <AppContent />
+              </TechMapProvider>
+            </TaskProvider>
+          </FactoryProvider>
+        </DataProvider>
+      </LanguageProvider>
+    </AuthProvider>
   );
 }
 
