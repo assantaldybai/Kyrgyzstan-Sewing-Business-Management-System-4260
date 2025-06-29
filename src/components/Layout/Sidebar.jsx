@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../../common/SafeIcon';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useAuth } from '../../contexts/FactoryContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 const { FiHome, FiShoppingCart, FiDollarSign, FiCheckSquare, FiPackage, FiUsers, FiSettings, FiTool, FiBook, FiLayers } = FiIcons;
 
