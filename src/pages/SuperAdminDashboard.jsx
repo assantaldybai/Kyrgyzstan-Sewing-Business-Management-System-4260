@@ -4,11 +4,12 @@ import { useAuth, supabase } from '../contexts/AuthContext';
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 
-const { FiUsers, FiTool, FiDollarSign, FiActivity, FiEye, FiSettings, FiTrendingUp } = FiIcons;
+const { FiUsers, FiTool, FiDollarSign, FiActivity, FiEye, FiSettings, FiTrendingUp, FiUserPlus, FiEdit2, FiTrash2 } = FiIcons;
 
 const SuperAdminDashboard = () => {
   const { user, signOut } = useAuth();
   const [factories, setFactories] = useState([]);
+  const [users, setUsers] = useState([]);
   const [stats, setStats] = useState({
     totalFactories: 0,
     activeFactories: 0,
@@ -16,9 +17,18 @@ const SuperAdminDashboard = () => {
     totalRevenue: 0
   });
   const [loading, setLoading] = useState(true);
+  const [showUserForm, setShowUserForm] = useState(false);
+  const [newUser, setNewUser] = useState({
+    email: '',
+    password: '',
+    firstName: '',
+    lastName: '',
+    role: 'factory_owner'
+  });
 
   useEffect(() => {
     loadFactories();
+    loadUsers();
     loadStats();
   }, []);
 
@@ -40,6 +50,26 @@ const SuperAdminDashboard = () => {
       setFactories(data || []);
     } catch (error) {
       console.error('Error loading factories:', error);
+    }
+  };
+
+  const loadUsers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select(`
+          *,
+          factories (
+            id,
+            name
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setUsers(data || []);
+    } catch (error) {
+      console.error('Error loading users:', error);
     }
   };
 
@@ -87,6 +117,97 @@ const SuperAdminDashboard = () => {
     } catch (error) {
       console.error('Error updating factory status:', error);
       alert('Ошибка обновления статуса фабрики');
+    }
+  };
+
+  const createUser = async (e) => {
+    e.preventDefault();
+    
+    try {
+      // Создаем пользователя через Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: newUser.email,
+        password: newUser.password,
+      });
+
+      if (authError) throw authError;
+
+      if (authData.user) {
+        // Создаем профиль пользователя
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: authData.user.id,
+            first_name: newUser.firstName,
+            last_name: newUser.lastName,
+            email: newUser.email,
+            role: newUser.role,
+            is_active: true
+          });
+
+        if (profileError) throw profileError;
+
+        // Если это владелец фабрики, создаем фабрику
+        if (newUser.role === 'factory_owner') {
+          const factoryName = `${newUser.firstName} ${newUser.lastName} Factory`;
+          
+          const { error: factoryError } = await supabase
+            .from('factories')
+            .insert({
+              name: factoryName,
+              owner_id: authData.user.id,
+              is_active: true,
+              has_completed_onboarding: false
+            });
+
+          if (factoryError) throw factoryError;
+        }
+
+        // Обновляем данные
+        loadUsers();
+        loadFactories();
+        loadStats();
+
+        // Сбрасываем форму
+        setNewUser({
+          email: '',
+          password: '',
+          firstName: '',
+          lastName: '',
+          role: 'factory_owner'
+        });
+        setShowUserForm(false);
+
+        alert('Пользователь успешно создан!');
+      }
+    } catch (error) {
+      console.error('Error creating user:', error);
+      alert('Ошибка создания пользователя: ' + error.message);
+    }
+  };
+
+  const deleteUser = async (userId) => {
+    if (!confirm('Вы уверены, что хотите удалить этого пользователя?')) {
+      return;
+    }
+
+    try {
+      // Удаляем профиль (каскадно удалится и auth.users)
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      loadUsers();
+      loadFactories();
+      loadStats();
+      
+      alert('Пользователь удален');
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      alert('Ошибка удаления пользователя');
     }
   };
 
@@ -190,6 +311,162 @@ const SuperAdminDashboard = () => {
             </div>
           </motion.div>
         </div>
+
+        {/* User Management */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8"
+        >
+          <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h2 className="text-lg font-semibold text-gray-900">Управление пользователями</h2>
+            <button
+              onClick={() => setShowUserForm(!showUserForm)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+            >
+              <SafeIcon icon={FiUserPlus} className="w-4 h-4 mr-2" />
+              Добавить пользователя
+            </button>
+          </div>
+
+          {/* User Creation Form */}
+          {showUserForm && (
+            <div className="p-6 bg-gray-50 border-b">
+              <form onSubmit={createUser} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={newUser.email}
+                  onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+                  required
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+                <input
+                  type="password"
+                  placeholder="Пароль"
+                  value={newUser.password}
+                  onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+                  required
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+                <input
+                  type="text"
+                  placeholder="Имя"
+                  value={newUser.firstName}
+                  onChange={(e) => setNewUser({...newUser, firstName: e.target.value})}
+                  required
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+                <input
+                  type="text"
+                  placeholder="Фамилия"
+                  value={newUser.lastName}
+                  onChange={(e) => setNewUser({...newUser, lastName: e.target.value})}
+                  required
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+                <select
+                  value={newUser.role}
+                  onChange={(e) => setNewUser({...newUser, role: e.target.value})}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="factory_owner">Владелец фабрики</option>
+                  <option value="superadmin">Суперадмин</option>
+                </select>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  Создать
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* Users Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Пользователь
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Роль
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Фабрика
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Статус
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Создан
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Действия
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {users.map((user) => (
+                  <tr key={user.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                          <SafeIcon icon={FiUsers} className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">
+                            {user.first_name} {user.last_name}
+                          </p>
+                          <p className="text-sm text-gray-500">{user.email}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 text-xs rounded-full ${
+                        user.role === 'superadmin' 
+                          ? 'bg-red-100 text-red-800' 
+                          : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {user.role === 'superadmin' ? 'Суперадмин' : 'Владелец фабрики'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {user.factories?.name || 'Нет фабрики'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 text-xs rounded-full ${
+                        user.is_active 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {user.is_active ? 'Активен' : 'Неактивен'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(user.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => deleteUser(user.id)}
+                          disabled={user.role === 'superadmin'}
+                          className={`text-red-600 hover:text-red-900 ${
+                            user.role === 'superadmin' ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
+                        >
+                          <SafeIcon icon={FiTrash2} className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </motion.div>
 
         {/* Factories Table */}
         <motion.div
