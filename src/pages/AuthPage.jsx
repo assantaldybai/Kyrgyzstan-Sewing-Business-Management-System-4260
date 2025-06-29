@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import LoginForm from '../components/Auth/LoginForm';
 import RegisterForm from '../components/Auth/RegisterForm';
+import SuperAdminRegistration from '../components/Auth/SuperAdminRegistration';
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 
-const { FiTool } = FiIcons;
+const { FiTool, FiShield } = FiIcons;
 
 const AuthPage = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [authMode, setAuthMode] = useState('login'); // 'login', 'register', 'superadmin'
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -70,16 +71,60 @@ const AuthPage = () => {
           {/* Right Side - Auth Forms */}
           <div className="flex items-center justify-center">
             <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+              {/* Auth Mode Selector */}
+              <div className="flex justify-center mb-6">
+                <div className="flex bg-gray-100 rounded-lg p-1">
+                  <button
+                    onClick={() => setAuthMode('login')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      authMode === 'login' 
+                        ? 'bg-white text-gray-900 shadow-sm' 
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    Вход
+                  </button>
+                  <button
+                    onClick={() => setAuthMode('register')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      authMode === 'register' 
+                        ? 'bg-white text-gray-900 shadow-sm' 
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    Регистрация
+                  </button>
+                  <button
+                    onClick={() => setAuthMode('superadmin')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center ${
+                      authMode === 'superadmin' 
+                        ? 'bg-red-100 text-red-900 shadow-sm' 
+                        : 'text-gray-600 hover:text-red-700'
+                    }`}
+                  >
+                    <SafeIcon icon={FiShield} className="w-4 h-4 mr-1" />
+                    Админ
+                  </button>
+                </div>
+              </div>
+
               <AnimatePresence mode="wait">
-                {isLogin ? (
+                {authMode === 'login' && (
                   <LoginForm 
                     key="login"
-                    onSwitchToRegister={() => setIsLogin(false)} 
+                    onSwitchToRegister={() => setAuthMode('register')} 
                   />
-                ) : (
+                )}
+                {authMode === 'register' && (
                   <RegisterForm 
                     key="register"
-                    onSwitchToLogin={() => setIsLogin(true)} 
+                    onSwitchToLogin={() => setAuthMode('login')} 
+                  />
+                )}
+                {authMode === 'superadmin' && (
+                  <SuperAdminRegistration 
+                    key="superadmin"
+                    onSwitchToLogin={() => setAuthMode('login')} 
                   />
                 )}
               </AnimatePresence>
