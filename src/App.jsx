@@ -3,6 +3,7 @@ import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FactoryProvider, useFactory } from './contexts/FactoryContext';
 import { TaskProvider } from './contexts/TaskContext';
+import { TechMapProvider } from './contexts/TechMapContext';
 import Sidebar from './components/Layout/Sidebar';
 import Header from './components/Layout/Header';
 import FactorySetup from './components/Setup/FactorySetup';
@@ -13,6 +14,8 @@ import Tasks from './pages/Tasks';
 import Inventory from './pages/Inventory';
 import Employees from './pages/Employees';
 import Settings from './pages/Settings';
+import TechMaps from './pages/TechMaps';
+import ProductionLots from './pages/ProductionLots';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { DataProvider } from './contexts/DataContext';
 import './App.css';
@@ -49,6 +52,8 @@ const AppContent = () => {
               <Route path="/tasks" element={<Tasks />} />
               <Route path="/inventory" element={<Inventory />} />
               <Route path="/employees" element={<Employees />} />
+              <Route path="/tech-maps" element={<TechMaps />} />
+              <Route path="/production-lots" element={<ProductionLots />} />
               <Route path="/settings" element={<Settings />} />
             </Routes>
           </motion.main>
@@ -64,7 +69,9 @@ function App() {
       <DataProvider>
         <FactoryProvider>
           <TaskProvider>
-            <AppContent />
+            <TechMapProvider>
+              <AppContent />
+            </TechMapProvider>
           </TaskProvider>
         </FactoryProvider>
       </DataProvider>

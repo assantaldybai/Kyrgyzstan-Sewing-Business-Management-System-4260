@@ -6,7 +6,7 @@ import SafeIcon from '../../common/SafeIcon';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useFactory } from '../../contexts/FactoryContext';
 
-const { FiHome, FiShoppingCart, FiDollarSign, FiCheckSquare, FiPackage, FiUsers, FiSettings, FiTool } = FiIcons;
+const { FiHome, FiShoppingCart, FiDollarSign, FiCheckSquare, FiPackage, FiUsers, FiSettings, FiTool, FiBook, FiLayers } = FiIcons;
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { t } = useLanguage();
@@ -17,6 +17,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     { icon: FiShoppingCart, label: 'Заказы', path: '/orders' },
     { icon: FiDollarSign, label: 'Финансы', path: '/finances' },
     { icon: FiCheckSquare, label: t('tasks'), path: '/tasks' },
+    { icon: FiBook, label: 'Тех. карты', path: '/tech-maps' },
+    { icon: FiLayers, label: 'Партии', path: '/production-lots' },
     { icon: FiPackage, label: t('inventory'), path: '/inventory' },
     { icon: FiUsers, label: t('employees'), path: '/employees' },
     { icon: FiSettings, label: t('settings'), path: '/settings' }
