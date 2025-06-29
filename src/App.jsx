@@ -8,6 +8,7 @@ import { TechMapProvider } from './contexts/TechMapContext';
 import Sidebar from './components/Layout/Sidebar';
 import Header from './components/Layout/Header';
 import FactorySetupForm from './components/Auth/FactorySetupForm';
+import OnboardingWizard from './components/Onboarding/OnboardingWizard';
 import AuthPage from './pages/AuthPage';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import Dashboard from './pages/Dashboard';
@@ -24,11 +25,36 @@ import { DataProvider } from './contexts/DataContext';
 import './App.css';
 
 const AppContent = () => {
-  const { user, profile, factory, loading, isSuperAdmin, needsFactorySetup } = useAuth();
+  const { 
+    user, 
+    profile, 
+    factory, 
+    loading, 
+    isSuperAdmin, 
+    needsFactorySetup, 
+    needsOnboarding,
+    completeOnboarding,
+    skipOnboarding
+  } = useAuth();
+  
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
+  };
+
+  const handleOnboardingComplete = async (onboardingData) => {
+    const result = await completeOnboarding(onboardingData);
+    if (result.error) {
+      alert('Ошибка при завершении настройки: ' + result.error.message);
+    }
+  };
+
+  const handleOnboardingSkip = async () => {
+    const result = await skipOnboarding();
+    if (result.error) {
+      alert('Ошибка при пропуске настройки: ' + result.error.message);
+    }
   };
 
   // Show loading spinner
@@ -53,6 +79,16 @@ const AppContent = () => {
   // Show factory setup if user needs to create a factory
   if (needsFactorySetup()) {
     return <FactorySetupForm />;
+  }
+
+  // Show onboarding wizard if factory owner hasn't completed onboarding
+  if (needsOnboarding()) {
+    return (
+      <OnboardingWizard
+        onComplete={handleOnboardingComplete}
+        onSkip={handleOnboardingSkip}
+      />
+    );
   }
 
   // Show main app for factory users

@@ -68,6 +68,7 @@ export const AuthProvider = ({ children }) => {
             subscription_plan,
             is_active,
             settings,
+            has_completed_onboarding,
             created_at
           )
         `)
@@ -137,6 +138,162 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const completeOnboarding = async (onboardingData) => {
+    try {
+      if (!factory?.id) {
+        throw new Error('No factory found');
+      }
+
+      // 1. Create technologist if provided
+      if (onboardingData.technologist?.name) {
+        const { error: techError } = await supabase
+          .from('profiles')
+          .insert({
+            first_name: onboardingData.technologist.name.split(' ')[0],
+            last_name: onboardingData.technologist.name.split(' ').slice(1).join(' '),
+            email: onboardingData.technologist.email || null,
+            phone: onboardingData.technologist.phone || null,
+            role: 'technologist',
+            factory_id: factory.id,
+            position: 'Технолог'
+          });
+
+        if (techError) {
+          console.error('Error creating technologist:', techError);
+        }
+      }
+
+      // 2. Create equipment types
+      if (onboardingData.equipment?.length > 0) {
+        const equipmentData = onboardingData.equipment
+          .filter(eq => eq.name.trim())
+          .map(eq => ({
+            name: eq.name,
+            base_rate: parseFloat(eq.baseRate) || 0,
+            factory_id: factory.id,
+            category: 'sewing'
+          }));
+
+        if (equipmentData.length > 0) {
+          const { error: equipError } = await supabase
+            .from('equipment_types')
+            .insert(equipmentData);
+
+          if (equipError) {
+            console.error('Error creating equipment:', equipError);
+          }
+        }
+      }
+
+      // 3. Create team members
+      const teamMembers = [];
+      
+      if (onboardingData.team?.cutter) {
+        teamMembers.push({
+          first_name: onboardingData.team.cutter.split(' ')[0],
+          last_name: onboardingData.team.cutter.split(' ').slice(1).join(' '),
+          role: 'cutter',
+          factory_id: factory.id,
+          position: 'Кройщик'
+        });
+      }
+
+      if (onboardingData.team?.brigadier) {
+        teamMembers.push({
+          first_name: onboardingData.team.brigadier.split(' ')[0],
+          last_name: onboardingData.team.brigadier.split(' ').slice(1).join(' '),
+          role: 'brigade_leader',
+          factory_id: factory.id,
+          position: 'Бригадир'
+        });
+      }
+
+      if (teamMembers.length > 0) {
+        const { error: teamError } = await supabase
+          .from('profiles')
+          .insert(teamMembers);
+
+        if (teamError) {
+          console.error('Error creating team members:', teamError);
+        }
+      }
+
+      // 4. Create customer and product model
+      if (onboardingData.client?.name) {
+        // Create customer
+        const { data: customerData, error: customerError } = await supabase
+          .from('customers')
+          .insert({
+            name: onboardingData.client.name,
+            factory_id: factory.id
+          })
+          .select()
+          .single();
+
+        if (customerError) {
+          console.error('Error creating customer:', customerError);
+        }
+
+        // Create product model
+        if (onboardingData.client.productName) {
+          const { error: productError } = await supabase
+            .from('product_models')
+            .insert({
+              name: onboardingData.client.productName,
+              article_number: onboardingData.client.articleNumber,
+              factory_id: factory.id,
+              category: 'clothing'
+            });
+
+          if (productError) {
+            console.error('Error creating product model:', productError);
+          }
+        }
+      }
+
+      // 5. Mark onboarding as completed
+      const { error: completeError } = await supabase
+        .from('factories')
+        .update({ has_completed_onboarding: true })
+        .eq('id', factory.id);
+
+      if (completeError) {
+        throw completeError;
+      }
+
+      // Reload profile to get updated factory data
+      await loadUserProfile(user.id);
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error completing onboarding:', error);
+      return { error };
+    }
+  };
+
+  const skipOnboarding = async () => {
+    try {
+      if (!factory?.id) {
+        throw new Error('No factory found');
+      }
+
+      const { error } = await supabase
+        .from('factories')
+        .update({ has_completed_onboarding: true })
+        .eq('id', factory.id);
+
+      if (error) throw error;
+
+      // Reload profile to get updated factory data
+      await loadUserProfile(user.id);
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error skipping onboarding:', error);
+      return { error };
+    }
+  };
+
   const updateProfile = async (updates) => {
     if (!user) return { error: new Error('No user logged in') };
 
@@ -170,6 +327,10 @@ export const AuthProvider = ({ children }) => {
     return user && profile && !factory && profile.role !== 'superadmin';
   };
 
+  const needsOnboarding = () => {
+    return user && profile && factory && !factory.has_completed_onboarding && profile.role === 'factory_owner';
+  };
+
   const value = {
     user,
     profile,
@@ -180,11 +341,14 @@ export const AuthProvider = ({ children }) => {
     signIn,
     signOut,
     createFactory,
+    completeOnboarding,
+    skipOnboarding,
     updateProfile,
     isFactoryOwner,
     isSuperAdmin,
     hasFactory,
     needsFactorySetup,
+    needsOnboarding,
     loadUserProfile
   };
 
