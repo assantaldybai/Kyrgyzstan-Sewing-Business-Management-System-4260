@@ -23,50 +23,143 @@ export const FactoryProvider = ({ children }) => {
   const [employees, setEmployees] = useState([
     {
       id: uuidv4(),
-      name: 'Айжан Сыдыкова',
+      firstName: 'Айжан',
+      lastName: 'Сыдыкова',
+      position: 'Старший технолог',
+      department: 'management',
       role: 'technologist',
-      teamId: 'team-1',
-      machineType: 'universal',
-      rate: 0
+      salary: 45000,
+      hireDate: '2023-03-15',
+      phone: '+996 555 123 456',
+      email: 'aizhan@fabric.kg',
+      address: 'г. Бишкек, ул. Чуй 123',
+      emergencyContact: 'Сыдыков Марат',
+      emergencyPhone: '+996 555 123 457',
+      status: 'active',
+      skills: ['Разработка техпроцессов', 'Контроль качества', 'Обучение персонала'],
+      machineTypes: [],
+      teamId: null,
+      notes: 'Опытный технолог с 10-летним стажем'
     },
     {
       id: uuidv4(),
-      name: 'Марат Жумабеков',
+      firstName: 'Марат',
+      lastName: 'Жумабеков',
+      position: 'Кройщик',
+      department: 'production',
       role: 'cutter',
-      rate: 100
+      salary: 35000,
+      hireDate: '2023-01-10',
+      phone: '+996 555 789 012',
+      email: 'marat@fabric.kg',
+      address: 'г. Бишкек, ул. Манаса 45',
+      emergencyContact: 'Жумабекова Гульнара',
+      emergencyPhone: '+996 555 789 013',
+      status: 'active',
+      skills: ['Раскрой платьев', 'Раскрой брюк', 'Работа с трикотажем'],
+      machineTypes: ['Раскройная'],
+      teamId: null,
+      notes: 'Точный и быстрый кройщик'
     },
     {
       id: uuidv4(),
-      name: 'Нурзат Асанова',
+      firstName: 'Нурзат',
+      lastName: 'Асанова',
+      position: 'Бригадир швейного цеха',
+      department: 'production',
       role: 'brigade_leader',
+      salary: 40000,
+      hireDate: '2022-11-20',
+      phone: '+996 555 345 678',
+      email: 'nurzat@fabric.kg',
+      address: 'г. Бишкек, ул. Токтогула 67',
+      emergencyContact: 'Асанов Бекболот',
+      emergencyPhone: '+996 555 345 679',
+      status: 'active',
+      skills: ['Управление бригадой', 'Пошив платьев', 'Контроль качества'],
+      machineTypes: ['Универсальная', 'Оверлок'],
       teamId: 'team-1',
-      rate: 0
+      notes: 'Опытный руководитель с хорошими организаторскими способностями'
     },
     {
       id: uuidv4(),
-      name: 'Гульмира Токтогулова',
+      firstName: 'Гульмира',
+      lastName: 'Токтогулова',
+      position: 'Швея',
+      department: 'production',
       role: 'sewer',
+      salary: 30000,
+      hireDate: '2023-05-15',
+      phone: '+996 555 456 789',
+      email: 'gulmira@fabric.kg',
+      address: 'г. Бишкек, ул. Ибраимова 89',
+      emergencyContact: 'Токтогулов Азамат',
+      emergencyPhone: '+996 555 456 790',
+      status: 'active',
+      skills: ['Пошив платьев', 'Работа с оверлоком', 'Обработка швов'],
+      machineTypes: ['Универсальная', 'Оверлок'],
       teamId: 'team-1',
-      machineType: 'overlock',
-      rate: 35
+      notes: 'Аккуратная и внимательная к деталям'
     },
     {
       id: uuidv4(),
-      name: 'Бакыт Орозов',
+      firstName: 'Бакыт',
+      lastName: 'Орозов',
+      position: 'Контролер ОТК',
+      department: 'quality',
       role: 'qc_specialist',
-      rate: 0
+      salary: 32000,
+      hireDate: '2023-02-01',
+      phone: '+996 555 567 890',
+      email: 'bakyt@fabric.kg',
+      address: 'г. Бишкек, ул. Киевская 12',
+      emergencyContact: 'Орозова Жамила',
+      emergencyPhone: '+996 555 567 891',
+      status: 'active',
+      skills: ['Контроль качества', 'Выявление дефектов', 'Документооборот'],
+      machineTypes: [],
+      teamId: null,
+      notes: 'Внимательный и принципиальный контролер'
     },
     {
       id: uuidv4(),
-      name: 'Салтанат Жумакеева',
+      firstName: 'Салтанат',
+      lastName: 'Жумакеева',
+      position: 'Упаковщик',
+      department: 'logistics',
       role: 'packer',
-      rate: 25
+      salary: 25000,
+      hireDate: '2023-06-10',
+      phone: '+996 555 678 901',
+      email: 'saltanat@fabric.kg',
+      address: 'г. Бишкек, ул. Горького 34',
+      emergencyContact: 'Жумакеев Талант',
+      emergencyPhone: '+996 555 678 902',
+      status: 'active',
+      skills: ['Упаковка изделий', 'Складские операции', 'Логистика'],
+      machineTypes: [],
+      teamId: null,
+      notes: 'Ответственная и организованная'
     },
     {
       id: uuidv4(),
-      name: 'Нурбек Токтосунов',
+      firstName: 'Нурбек',
+      lastName: 'Токтосунов',
+      position: 'Менеджер по закупкам',
+      department: 'procurement',
       role: 'procurement_manager',
-      rate: 0
+      salary: 42000,
+      hireDate: '2022-09-15',
+      phone: '+996 555 789 012',
+      email: 'nurbek@fabric.kg',
+      address: 'г. Бишкек, ул. Панфилова 56',
+      emergencyContact: 'Токтосунова Айгуль',
+      emergencyPhone: '+996 555 789 013',
+      status: 'active',
+      skills: ['Закупки материалов', 'Работа с поставщиками', 'Переговоры'],
+      machineTypes: [],
+      teamId: null,
+      notes: 'Опытный закупщик с хорошими связями'
     }
   ]);
 
@@ -459,6 +552,27 @@ export const FactoryProvider = ({ children }) => {
     return employees.filter(emp => emp.role === role);
   };
 
+  // Employee Management Functions
+  const addEmployee = (employeeData) => {
+    const newEmployee = {
+      id: uuidv4(),
+      ...employeeData,
+      createdAt: new Date().toISOString()
+    };
+    setEmployees(prev => [...prev, newEmployee]);
+    return newEmployee.id;
+  };
+
+  const updateEmployee = (employeeId, updates) => {
+    setEmployees(prev => prev.map(emp => 
+      emp.id === employeeId ? { ...emp, ...updates } : emp
+    ));
+  };
+
+  const deleteEmployee = (employeeId) => {
+    setEmployees(prev => prev.filter(emp => emp.id !== employeeId));
+  };
+
   return (
     <FactoryContext.Provider value={{
       // Configuration
@@ -490,6 +604,11 @@ export const FactoryProvider = ({ children }) => {
       // Finance Management
       updateFinances,
       calculateLaborCosts,
+      
+      // Employee Management
+      addEmployee,
+      updateEmployee,
+      deleteEmployee,
       
       // Analytics
       getMetrics,
